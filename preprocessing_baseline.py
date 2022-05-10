@@ -93,7 +93,7 @@ def filterPair(p, MAX_LENGTH=340):
 
 
 def filterPairs(pairs, MAX_LENGTH=340):
-    return [pair for pair in pairs if filterPair(pair)]
+    return [pair for pair in pairs if filterPair(pair, MAX_LENGTH)]
 
 def Count_words(pairs, input_lang, output_lang):
   for pair in pairs:
