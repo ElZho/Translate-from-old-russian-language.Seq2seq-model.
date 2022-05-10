@@ -7,7 +7,6 @@ import torch
 
 SOS_token = 0
 EOS_token = 1
-# MAX_LENGTH = 340
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -74,15 +73,6 @@ def readLangs(lang1, lang2, path, reverse=False):
     train_input_lang, train_output_lang= create_langs(lang1, lang2, train_pairs, reverse=False)
     test_input_lang, test_output_lang= create_langs(lang1, lang2, test_pairs, reverse=False)
 
-    # Reverse pairs, make Lang instances
-    # if reverse:
-    #     pairs = [list(reversed(p)) for p in pairs]
-    #     input_lang = Lang(lang2)
-    #     output_lang = Lang(lang1)
-    # else:
-    #     input_lang = Lang(lang1)
-    #     output_lang = Lang(lang2)
-
     return train_input_lang, train_output_lang, train_pairs, test_input_lang,\
            test_output_lang, test_pairs 
 
@@ -112,9 +102,7 @@ def prepareData(lang1, lang2, path, MAX_LENGTH=340, reverse=False):
     print("Trimmed to %s sentence train pairs" % len(train_pairs))
     print("Trimmed to %s sentence test pairs" % len(test_pairs))
     print("Counting words...")
-    # for pair in pairs:
-    #     input_lang.addSentence(pair[0])
-    #     output_lang.addSentence(pair[1])
+    
     train_input_lang, train_output_lang=Count_words(train_pairs, train_input_lang,\
                                                                train_output_lang)
     test_input_lang, test_output_lang=Count_words(test_pairs, test_input_lang,\
