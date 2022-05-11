@@ -12,3 +12,11 @@ II. Upgrate model:
 1. model.py
 2. preprocessing.py
 3. Seq2Seq_translation_final.ipynb
+
+In this upgrate model I try to realize:
+
+- To convert data to dataloader using. This allow me to use batches to speed lerning process. More over batches can make results better. For do this I have to pad sentences. The sentences should be the same length for dataloader using. And I have to make some changes in model for load date by batches.
+- To make some changes in baseline model. I join encoder and decoder with attention to single model. To do this I make encoder forward to work with whole batch, not with only one word like in baseline model. Decoder forward I keep unchanged, except that I pass for one word from whole batch, so that decoder works with tensor size equal to batch size. Padding the sentences can make model work worser, to I add mask to attention and use pad_packed_sequence in encoder to nevilate padding. I change Attention to work with encoder output, not with decoder imput like in baseline model.
+- I try to use Word2vec embeddings to improve model.
+- I try different loss functions and optimizers.
+- I add bleu_score metric to estimate results.
