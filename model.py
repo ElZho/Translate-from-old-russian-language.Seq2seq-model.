@@ -10,18 +10,23 @@ EOS_token = 1
 device =torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class EncoderRNN(nn.Module):
-    def __init__(self, input_size, hidden_size):
+    def __init__(self, input_size, hidden_size, embedding=None):
         super(EncoderRNN, self).__init__()
         self.hidden_size = hidden_size
-
-        self.embedding = nn.Embedding(input_size, hidden_size)
+        if embedding== None:
+          self.embedding = nn.Embedding(input_size, hidden_size)
+        else:
+          self.embedding = embedding
         self.gru = nn.GRU(hidden_size, hidden_size, batch_first=True)
 
-    def forward(self, input, hidden):
+    def forward(self, input, input_len, hidden):
         # embedded = self.embedding(input).view(1, 1, -1)
-        embedded = self.embedding(input)        
-        output = embedded
+        embedded = self.embedding(input) #batch_size x max_length x embedding_size
+        tot_len=embedded.shape[1]
+        embedded = nn.utils.rnn.pack_padded_sequence(embedded, input_len.to('cpu'), batch_first=True, enforce_sorted=False)       
+        output = embedded        
         output, hidden = self.gru(output, hidden)
+        output, _ = nn.utils.rnn.pad_packed_sequence(output, batch_first=True, total_length=tot_len) #batch_size x length_of_sentence x embedding_size
         
         return output, hidden
 
@@ -31,41 +36,67 @@ class EncoderRNN(nn.Module):
 
 
 class AttnDecoderRNN(nn.Module):
-    def __init__(self, hidden_size, output_size, MAX_LENGTH, dropout_p=0.1):
+    def __init__(self, hidden_size, output_size, MAX_LENGTH=340, dropout_p=0.1, embedding=None):
         super(AttnDecoderRNN, self).__init__()
         self.hidden_size = hidden_size
         self.output_size = output_size
         self.dropout_p = dropout_p
         self.max_length = MAX_LENGTH
-
-        self.embedding = nn.Embedding(self.output_size, self.hidden_size)
-        self.attn = nn.Linear(self.hidden_size * 2, self.max_length)
+        if embedding== None:
+          self.embedding = nn.Embedding(self.output_size, self.hidden_size)
+        else:
+          self.embedding = embedding  
+        #self.attn = nn.Linear(self.hidden_size * 2, self.max_length)# original
+        self.attn = nn.Linear(self.hidden_size * 2, self.hidden_size)
+        self.v=nn.Linear(self.hidden_size, 1, bias=False)
         self.attn_combine = nn.Linear(self.hidden_size * 2, self.hidden_size)
         self.dropout = nn.Dropout(self.dropout_p)
         self.gru = nn.GRU(self.hidden_size, self.hidden_size, batch_first=True)
         self.out = nn.Linear(self.hidden_size, self.output_size)
 
-    def forward(self, input, hidden, encoder_outputs):
-        # embedded = self.embedding(input).view(1, 1, -1)
-        embedded = self.embedding(input)
+    def forward(self, input, hidden, encoder_outputs, mask):
+        # input: batch_size x 1 (one word) or batch_size
+        # print('input', input.shape)
+        embedded = self.embedding(input).view(input.shape[0], 1, -1) #batch_size x output_size x 1
         embedded = self.dropout(embedded)
+        # print('embedded',embedded.shape)
+
+
+        ############################
+        # attention from original model
+
+        # attention=self.attn(torch.cat((embedded[:,0], hidden[0]), 1)) #batch_size x max_len
+        # attention=attention.masked_fill(attention==0, -1e10)
+        # attn_weights = F.softmax(attention, dim=1) #batch_size x max_len
+
+
+        # print("attn_weights", attn_weights.shape)  
+        # print('attn_weights.unsqueeze(1)', attn_weights.unsqueeze(1).shape, 'encoder_outputs',
+        #                          encoder_outputs.shape)
+
+        ##############################
+        #attention remade
         
-        attn_weights = F.softmax(
-            self.attn(torch.cat((embedded, hidden[0]), 1)), dim=1)
-          
+        attention=self.attn(torch.cat((encoder_outputs, hidden.repeat(self.max_length, 1, 1).permute(1, 0, 2)), 2)) #batch_size x max_len x hidden_size
+        attention=self.v(attention).squeeze(2) #batch_size x max_len        
+        attention=attention.masked_fill(mask==0, -1e10)
+        attn_weights = F.softmax(attention, dim=1) #batch_size x max_len
+        #########
+
+        
         attn_applied = torch.bmm(attn_weights.unsqueeze(1),
-                                 encoder_outputs)
-        
-        output = torch.cat((embedded, attn_applied.view(embedded.shape)), 1) 
-               
-        output = self.attn_combine(output).unsqueeze(0)   
-             
+                                 encoder_outputs)  #batch x 1 (one word) x embedding_size
+        # print('attn_applied', attn_applied.shape)
+        output = torch.cat((embedded.view(embedded.shape[0],-1), attn_applied.view(embedded.shape[0],-1)), 1) # batch_size x 2*emb_size
+        # print('cat',  output.shape)     
+        output = self.attn_combine(output).unsqueeze(0)   #1 (one word) x batch_size x embedding_size
+        # print('attn_combine',  output.shape)      
         output = F.relu(output)
         
-        output, hidden = self.gru(output.transpose(0, 1), hidden) 
-               
-        output = F.log_softmax(self.out(output.squeeze()), dim=1)
-        
+        output, hidden = self.gru(output.transpose(0, 1), hidden) #batch x 1 (one word) x embedding_size
+        # print('gru',  output.shape)       
+        output = F.log_softmax(self.out(output[:,0,:]), dim=1) #batch x vocabalary_size
+        # print('out', output.shape)
         return output, hidden, attn_weights
 
     def initHidden(self):
@@ -77,16 +108,24 @@ class TONModel(nn.Module)  :
         self.encoder = encoder
         self.decoder = decoder 
         self.teacher_forcing_ratio=teacher_forcing_ratio = 0.5
+  def create_mask(self, input_tensor):
+        mask = (input_tensor != 0).permute(0, 1)
+        return mask     
         
-        
-  def forward(self, input_tensor, target_tensor, evalute=False ):
+  def forward(self, input_tensor, input_len, target_tensor, evalute=False ):
+        # input_tensor = batch[0][:,:,0]
+        # input_mask = batch[1][:,:,0]
+        # target_tensor = batch[2][:,:,0]
+        # maask_tensor = batch[3][:,:,0]
         input_length = input_tensor.size(1)
         target_length = target_tensor.size(1)
         batch_size=input_tensor.size(0)
+
+        input_mask=self.create_mask(input_tensor)
         
         encoder_hidden= self.encoder.initHidden(batch_size)         
            
-        encoder_output, encoder_hidden = self.encoder(input_tensor, encoder_hidden)
+        encoder_output, encoder_hidden = self.encoder(input_tensor, input_len, encoder_hidden)
                 
         decoder_input=torch.zeros( batch_size, dtype=torch.int32).to(device)
         
@@ -97,26 +136,21 @@ class TONModel(nn.Module)  :
 
         decoder_outputs = torch.zeros((batch_size, target_length,self.decoder.output_size), device=device)
         
-        
-        if use_teacher_forcing: 
-          for di in range(target_length):
+        for di in range(target_length):
                   
             decoder_output, decoder_hidden, decoder_attention = self.decoder(
-                  decoder_input, encoder_hidden, encoder_output)
-            decoder_input = target_tensor[:,di]  # Teacher forcing
-            
+                  decoder_input, encoder_hidden, encoder_output, input_mask)                        
             decoder_outputs[:,di]=decoder_output
-          
-        else:
-          # Without teacher forcing: use its own predictions as the next input
-          for di in range(target_length):            
-            decoder_output, decoder_hidden, decoder_attention = self.decoder(
-                  decoder_input, encoder_hidden, encoder_output)
-             
-            decoder_outputs[:,di]=decoder_output   
-             
-            topv, topi = decoder_output.topk(1)
-            decoder_input = topi.squeeze().detach()  # detach from history as input
-            
-                          
+        
+            if use_teacher_forcing: 
+              decoder_input = target_tensor[:,di]  # Teacher forcing
+              
+            else:
+              # Without teacher forcing: use its own predictions as the next input
+               
+              topv, topi = decoder_output.topk(1,1)
+              decoder_input = topi.detach() # detach from history as input
+            if  decoder_input.sum() ==0:
+               break
+                
         return decoder_outputs      

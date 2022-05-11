@@ -10,7 +10,6 @@ from tqdm.std import tqdm
 
 SOS_token = 1
 EOS_token = 0
-# MAX_LENGTH = 340
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -89,7 +88,7 @@ def filterPair(p, MAX_LENGTH=340):
 
 
 def filterPairs(pairs, MAX_LENGTH=340):
-    return [pair for pair in pairs if filterPair(pair)]
+    return [pair for pair in pairs if filterPair(pair, MAX_LENGTH)]
 
 def Count_words(pairs, input_lang, output_lang):
   for pair in pairs:
@@ -109,9 +108,7 @@ def prepareData(lang1, lang2, path, MAX_LENGTH=340, reverse=False):
     print("Trimmed to %s sentence train pairs" % len(train_pairs))
     print("Trimmed to %s sentence test pairs" % len(test_pairs))
     print("Counting words...")
-    # for pair in pairs:
-    #     input_lang.addSentence(pair[0])
-    #     output_lang.addSentence(pair[1])
+    
     train_input_lang, train_output_lang=Count_words(train_pairs, train_input_lang,\
                                                                train_output_lang)
     test_input_lang, test_output_lang=Count_words(test_pairs, test_input_lang,\
@@ -135,12 +132,21 @@ def tensorFromSentence(lang, sentence, MAX_LENGTH=340):
     if len(indexes)>MAX_LENGTH-1:
       indexes=indexes[:MAX_LENGTH-1]
     indexes.append(EOS_token)
+    
+    # mask=torch.ones(len(indexes), dtype=int)
+    # mask=torch.cat((mask, torch.zeros(MAX_LENGTH-mask.shape[0], dtype=int)), dim=0)
     if len(indexes)<MAX_LENGTH:
       indexes.extend(itertools.repeat(EOS_token, (MAX_LENGTH-len(indexes))))
-    return torch.tensor(indexes, dtype=torch.long, device=device).view(-1, 1)
+    return torch.tensor(indexes, dtype=torch.long, device=device).view(-1, 1)#, mask.to(device)
 
+def get_len(sentence, MAX_LENGTH=340):
+    return min(len(sentence.split(' ')), MAX_LENGTH)
 
 def tensorsFromPair(pair, input_lang, output_lang, MAX_LENGTH=340):
+    #input_tensor, input_mask = tensorFromSentence(input_lang, pair[0], MAX_LENGTH)
+    input_len=get_len(pair[0], MAX_LENGTH)
     input_tensor = tensorFromSentence(input_lang, pair[0], MAX_LENGTH)
-    target_tensor = tensorFromSentence(output_lang, pair[1], MAX_LENGTH)
-    return (input_tensor, target_tensor)    
+    #target_tensor, target_mask  = tensorFromSentence(output_lang, pair[1], MAX_LENGTH)
+    target_tensor  = tensorFromSentence(output_lang, pair[1], MAX_LENGTH)
+    return (input_tensor, input_len, target_tensor) 
+    #return (input_tensor, input_mask, target_tensor,target_mask)    
