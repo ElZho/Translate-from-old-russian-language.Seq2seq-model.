@@ -56,12 +56,10 @@ class AttnDecoderRNN(nn.Module):
 
     def forward(self, input, hidden, encoder_outputs, mask):
         # input: batch_size x 1 (one word) or batch_size
-        # print('input', input.shape)
+        
         embedded = self.embedding(input).view(input.shape[0], 1, -1) #batch_size x output_size x 1
         embedded = self.dropout(embedded)
-        # print('embedded',embedded.shape)
-
-
+        
         ############################
         # attention from original model
 
@@ -86,17 +84,13 @@ class AttnDecoderRNN(nn.Module):
         
         attn_applied = torch.bmm(attn_weights.unsqueeze(1),
                                  encoder_outputs)  #batch x 1 (one word) x embedding_size
-        # print('attn_applied', attn_applied.shape)
-        output = torch.cat((embedded.view(embedded.shape[0],-1), attn_applied.view(embedded.shape[0],-1)), 1) # batch_size x 2*emb_size
-        # print('cat',  output.shape)     
-        output = self.attn_combine(output).unsqueeze(0)   #1 (one word) x batch_size x embedding_size
-        # print('attn_combine',  output.shape)      
+        
+        output = torch.cat((embedded.view(embedded.shape[0],-1), attn_applied.view(embedded.shape[0],-1)), 1) # batch_size x 2*emb_size    
+        output = self.attn_combine(output).unsqueeze(0)   #1 (one word) x batch_size x embedding_size      
         output = F.relu(output)
         
-        output, hidden = self.gru(output.transpose(0, 1), hidden) #batch x 1 (one word) x embedding_size
-        # print('gru',  output.shape)       
+        output, hidden = self.gru(output.transpose(0, 1), hidden) #batch x 1 (one word) x embedding_size       
         output = F.log_softmax(self.out(output[:,0,:]), dim=1) #batch x vocabalary_size
-        # print('out', output.shape)
         return output, hidden, attn_weights
 
     def initHidden(self):
@@ -113,10 +107,7 @@ class TONModel(nn.Module)  :
         return mask     
         
   def forward(self, input_tensor, input_len, target_tensor, evalute=False ):
-        # input_tensor = batch[0][:,:,0]
-        # input_mask = batch[1][:,:,0]
-        # target_tensor = batch[2][:,:,0]
-        # maask_tensor = batch[3][:,:,0]
+        
         input_length = input_tensor.size(1)
         target_length = target_tensor.size(1)
         batch_size=input_tensor.size(0)
@@ -153,4 +144,4 @@ class TONModel(nn.Module)  :
             if  decoder_input.sum() ==0:
                break
                 
-        return decoder_outputs      
+        return decoder_outputs,   decoder_attention    
