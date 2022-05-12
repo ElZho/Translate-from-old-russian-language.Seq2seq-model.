@@ -131,22 +131,17 @@ def tensorFromSentence(lang, sentence, MAX_LENGTH=340):
     indexes = indexesFromSentence(lang, sentence)
     if len(indexes)>MAX_LENGTH-1:
       indexes=indexes[:MAX_LENGTH-1]
-    indexes.append(EOS_token)
-    
-    # mask=torch.ones(len(indexes), dtype=int)
-    # mask=torch.cat((mask, torch.zeros(MAX_LENGTH-mask.shape[0], dtype=int)), dim=0)
+    indexes.append(EOS_token)  
     if len(indexes)<MAX_LENGTH:
       indexes.extend(itertools.repeat(EOS_token, (MAX_LENGTH-len(indexes))))
     return torch.tensor(indexes, dtype=torch.long, device=device).view(-1, 1)#, mask.to(device)
 
+# get length of sentance before padding. to use in encoder layer.
 def get_len(sentence, MAX_LENGTH=340):
     return min(len(sentence.split(' ')), MAX_LENGTH)
 
 def tensorsFromPair(pair, input_lang, output_lang, MAX_LENGTH=340):
-    #input_tensor, input_mask = tensorFromSentence(input_lang, pair[0], MAX_LENGTH)
     input_len=get_len(pair[0], MAX_LENGTH)
     input_tensor = tensorFromSentence(input_lang, pair[0], MAX_LENGTH)
-    #target_tensor, target_mask  = tensorFromSentence(output_lang, pair[1], MAX_LENGTH)
     target_tensor  = tensorFromSentence(output_lang, pair[1], MAX_LENGTH)
-    return (input_tensor, input_len, target_tensor) 
-    #return (input_tensor, input_mask, target_tensor,target_mask)    
+    return (input_tensor, input_len, target_tensor)   
