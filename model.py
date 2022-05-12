@@ -60,7 +60,7 @@ class AttnDecoderRNN(nn.Module):
         embedded = self.embedding(input).view(input.shape[0], 1, -1) #batch_size x output_size x 1
         embedded = self.dropout(embedded)
         
-        ############################
+        ##############################
         # attention from original model
 
         # attention=self.attn(torch.cat((embedded[:,0], hidden[0]), 1)) #batch_size x max_len
@@ -72,14 +72,14 @@ class AttnDecoderRNN(nn.Module):
         # print('attn_weights.unsqueeze(1)', attn_weights.unsqueeze(1).shape, 'encoder_outputs',
         #                          encoder_outputs.shape)
 
-        ##############################
+        ###############################
         #attention remade
         
         attention=self.attn(torch.cat((encoder_outputs, hidden.repeat(self.max_length, 1, 1).permute(1, 0, 2)), 2)) #batch_size x max_len x hidden_size
         attention=self.v(attention).squeeze(2) #batch_size x max_len        
         attention=attention.masked_fill(mask==0, -1e10)
         attn_weights = F.softmax(attention, dim=1) #batch_size x max_len
-        #########
+        ###############################
 
         
         attn_applied = torch.bmm(attn_weights.unsqueeze(1),
