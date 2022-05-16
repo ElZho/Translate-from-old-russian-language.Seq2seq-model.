@@ -18,7 +18,7 @@ There is three file:
 2. model_baseline.py - Encoder, Decoder and AttnDecoder - decoder with attention. Attention is on decoder inputs, not to encoder outputs.
 3. Seq2Seq_translation_baseline.ipynb - main file. There is sentence length analyse, baseline train loop without validation, train loop with validation loop, prediction and attention analyses. There were used two dataset - main - old_slav and english-russian dataset.
 
-II. **Upgrate model**:
+II. **Upgrade model**:
 1. model.py
 2. preprocessing.py
 3. Seq2Seq_translation_final.ipynb  -  *this is work with old Slavinic -  Russian corpus*
