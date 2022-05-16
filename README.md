@@ -7,7 +7,7 @@ git clone https://github.com/ElZho/Translate-from-old-russian-language.Seq2seq-m
 To unzip zip dataset run comand in terminal: unzip rus-eng.zip
 In each notebook change path to txt files in config. 
 
-Dataset is old slavonic russian corpus. - old_slav.txt
+Datasets are old slavonic russian corpus. - old_slav.txt and rus-eng.zip
 
 I. Baseline model is model from pytorch totorial https://pytorch.org/tutorials/intermediate/seq2seq_translation_tutorial by Sean Robertson.
 There is three file:
