@@ -34,7 +34,7 @@ In this upgrate model I try to realize:
 III. **Upgrate model with BPE**:
 1. model.py
 2. preprocessing_bpe.py
-3. Translation with BPE
+3. Translation_with BPE.ipynb
 
 In this upgrade I:
 - create a BPE model and use bpe tokenizators for source and target datasets.
