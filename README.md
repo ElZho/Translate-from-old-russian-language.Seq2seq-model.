@@ -5,6 +5,7 @@ To start these notebooks on your computer run this comand in terminal:
 git clone https://github.com/ElZho/Translate-from-old-russian-language.Seq2seq-model..git
 
 To unzip zip dataset run comand in terminal: unzip rus-eng.zip
+
 In each notebook change path to txt files in config. 
 
 Datasets are old slavonic russian corpus. - old_slav.txt and rus-eng.zip
