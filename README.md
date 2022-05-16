@@ -42,5 +42,5 @@ In this upgrade I:
 - create a BPE model and use bpe tokenizators for source and target datasets
 - create my own function for calculating bleu score
 
-IV. ** Best model**
+IV. **Best model**
 
