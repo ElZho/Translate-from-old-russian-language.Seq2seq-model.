@@ -37,5 +37,6 @@ III. **Upgrate model with BPE**:
 3. Translation_with BPE.ipynb
 
 In this upgrade I:
-- create a BPE model and use bpe tokenizators for source and target datasets.
+- create a BPE model and use bpe tokenizators for source and target datasets
+- create my own function for calculating bleu score
 
