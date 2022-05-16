@@ -21,7 +21,8 @@ There is three file:
 II. **Upgrate model**:
 1. model.py
 2. preprocessing.py
-3. Seq2Seq_translation_final.ipynb
+3. Seq2Seq_translation_final.ipynb  -  *this is work with old Slavinic -  Russian corpus*
+4. Seq2Seq_translation_final_large_dataset.ipynb - *this work with English - Russian corpus*
 
 In this upgrate model I try to realize:
 
