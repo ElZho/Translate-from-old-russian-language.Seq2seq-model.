@@ -27,3 +27,12 @@ In this upgrate model I try to realize:
 - I try to use Word2vec embeddings to improve model.
 - I try different loss functions and optimizers.
 - I add bleu_score metric to estimate results.
+
+III. Upgrate model with BPE:
+1. model.py
+2. preprocessing_bpe.py
+3. Translation with BPE
+
+In this upgrade I:
+- create a BPE model and use bpe tokenizators for source and target datasets.
+
