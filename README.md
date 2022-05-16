@@ -23,6 +23,7 @@ II. **Upgrate model**:
 2. preprocessing.py
 3. Seq2Seq_translation_final.ipynb  -  *this is work with old Slavinic -  Russian corpus*
 4. Seq2Seq_translation_final_large_dataset.ipynb - *this work with English - Russian corpus*
+5. Seq2Seq_translation_final_scheduler.ipynb -  *this notebook is with using scheduler*
 
 In this upgrate model I try to realize:
 
@@ -40,4 +41,6 @@ III. **Upgrate model with BPE**:
 In this upgrade I:
 - create a BPE model and use bpe tokenizators for source and target datasets
 - create my own function for calculating bleu score
+
+IV. ** Best model**
 
