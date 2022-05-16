@@ -1,6 +1,7 @@
 # Translate-from-old-russian-language.Seq2seq-model.
 
 To start this notebook on your computer run this comand in terminal: 
+
 git clone https://github.com/ElZho/Translate-from-old-russian-language.Seq2seq-model..git
 
 Dataset is old slavonic russian corpus. - old_slav.txt
