@@ -43,4 +43,7 @@ In this upgrade I:
 - create my own function for calculating bleu score
 
 IV. **Best model**
+1. model.py
+2. preprocessing.py
+3. Best model Seq2Seq_translation_final.ipynb
 
