@@ -12,13 +12,13 @@ In each notebook change path to txt files in config.
 
 Datasets are old slavonic russian corpus. - old_slav.txt and rus-eng.zip
 
-I. Baseline model is model from pytorch totorial https://pytorch.org/tutorials/intermediate/seq2seq_translation_tutorial by Sean Robertson.
+I. **Baseline model** is model from pytorch totorial https://pytorch.org/tutorials/intermediate/seq2seq_translation_tutorial by Sean Robertson.
 There is three file:
 1. preprocessing_baseline.py - function to upload, preprocess and create dataloader.
 2. model_baseline.py - Encoder, Decoder and AttnDecoder - decoder with attention. Attention is on decoder inputs, not to encoder outputs.
 3. Seq2Seq_translation_baseline.ipynb - main file. There is sentence length analyse, baseline train loop without validation, train loop with validation loop, prediction and attention analyses. There were used two dataset - main - old_slav and english-russian dataset.
 
-II. Upgrate model:
+II. **Upgrate model**:
 1. model.py
 2. preprocessing.py
 3. Seq2Seq_translation_final.ipynb
@@ -31,7 +31,7 @@ In this upgrate model I try to realize:
 - I try different loss functions and optimizers.
 - I add bleu_score metric to estimate results.
 
-III. Upgrate model with BPE:
+III. **Upgrate model with BPE**:
 1. model.py
 2. preprocessing_bpe.py
 3. Translation with BPE
