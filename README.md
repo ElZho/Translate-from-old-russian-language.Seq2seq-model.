@@ -10,7 +10,7 @@ To unzip zip dataset run comand in terminal:
 
 In each notebook change path to txt files in config. 
 
-Datasets are old slavonic russian corpus. - old_slav.txt and rus-eng.zip
+Datasets are old slavonic russian corpus. - **old_slav.txt** and **rus-eng.zip**
 
 I. **Baseline model** is model from pytorch totorial https://pytorch.org/tutorials/intermediate/seq2seq_translation_tutorial by Sean Robertson.
 There is three file:
